@@ -15,10 +15,7 @@ class BukuController extends Controller
      */
     public function index()
     {
-        // Mengambil semua data buku dari database
-        $bukus = Buku::all();
-
-        // Mengirim data ke view index
+        $bukus = Buku::latest()->paginate(20);
         return view('buku.index', compact('bukus'));
     }
 
@@ -75,7 +72,8 @@ class BukuController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+        return view('buku.edit', compact('buku'));
     }
 
     /**
@@ -83,7 +81,27 @@ class BukuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+
+        $request->validate([
+            'isbn'    => 'required|unique:bukus,isbn,' . $buku->id,
+            'judul'   => 'required|string|max:255',
+            'penulis' => 'required|string|max:255',
+            'stok'    => 'required|integer|min:0',
+        ]);
+
+        $buku->update([
+            'isbn'         => $request->isbn,
+            'judul'        => $request->judul,
+            'penulis'      => $request->penulis,
+            'penerbit'     => $request->penerbit,
+            'tahun_terbit' => $request->tahun_terbit,
+            'deskripsi'    => $request->deskripsi,
+            'stok'         => $request->stok,
+        ]);
+
+        return redirect()->route('buku.index')
+            ->with('success', 'Data buku berhasil diperbarui!');
     }
 
     /**
@@ -91,7 +109,11 @@ class BukuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+        $buku->delete();
+
+        return redirect()->route('buku.index')
+            ->with('success', 'Buku berhasil dihapus!');
     }
 
     /**

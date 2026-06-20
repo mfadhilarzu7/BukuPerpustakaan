@@ -418,10 +418,10 @@
                 <a href="/katalog">Katalog Buku</a>
             </li>
             <li class="menu-item">
-                <a href="#">Peminjaman</a>
+                <a href="{{ route('peminjaman.index') }}">Peminjaman</a>
             </li>
             <li class="menu-item">
-                <a href="#">Pengembalian</a>
+                <a href="{{ route('peminjaman.index') }}">Pengembalian</a>
             </li>
             <li class="menu-item">
                 <a href="/buku/create">Scan ISBN</a>

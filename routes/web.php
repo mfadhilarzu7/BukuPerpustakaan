@@ -6,6 +6,8 @@ use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\DendaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +78,14 @@ Route::middleware(['auth', 'role:petugas'])->group(function () {
     
     // Route Resource CRUD Buku
     Route::resource('buku', BukuController::class);
+    
+    // Rute Peminjaman & Pengembalian Buku
+    Route::resource('peminjaman', PeminjamanController::class);
+    Route::post('peminjaman/{peminjaman}/kembalikan', [PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
+    
+    // Rute Denda
+    Route::get('denda', [DendaController::class, 'index'])->name('denda.index');
+    Route::post('denda/{denda}/lunasi', [DendaController::class, 'lunasi'])->name('denda.lunasi');
     
 });
 

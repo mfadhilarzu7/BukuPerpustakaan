@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Peminjaman;
 
 class Denda extends Model
 {
@@ -12,4 +13,9 @@ class Denda extends Model
         'total_denda',
         'status_bayar',
     ];
+
+    public function peminjaman()
+    {
+        return $this->belongsTo(Peminjaman::class);
+    }
 }

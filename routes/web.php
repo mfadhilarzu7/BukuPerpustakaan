@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\BukuController; // Import BukuController
+use App\Http\Controllers\KatalogController;
 
 // Rute awal bawaan Laravel yang bisa diakses siapa saja
+Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
 Route::get('/', function () {
     return view('welcome');
 });

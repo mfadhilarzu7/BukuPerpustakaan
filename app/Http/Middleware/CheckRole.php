@@ -4,26 +4,21 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string  $role
-     * @return mixed
+     * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role)
-    {
-        // Mengecek apakah role user saat ini TIDAK SAMA dengan role yang diizinkan
+    // app/Http/Middleware/CheckRole.php
+    public function handle($request, Closure $next, $role)
+    {   
         if (auth()->user()->role !== $role) {
-            // Jika tidak sama, tampilkan halaman error 403 (Forbidden / Akses Ditolak)
             abort(403);
         }
-
-        // Jika sama, lanjutkan request ke proses selanjutnya
         return $next($request);
     }
 }

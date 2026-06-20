@@ -17,4 +17,4 @@ class KatalogController extends Controller
 
         return view('katalog.index', compact('bukus'));
     }
-} 
+}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Buku;
 
 class BukuController extends Controller
 {
@@ -91,5 +92,43 @@ class BukuController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Fetch metadata of a book using its ISBN.
+     */
+    public function fetchISBN($isbn)
+    {
+        $response = \Illuminate\Support\Facades\Http::get("https://openlibrary.org/api/books?bibkeys=ISBN:{$isbn}&jscmd=data&format=json");
+        
+        if ($response->failed()) {
+            return response()->json(['message' => 'Failed to fetch data from Open Library'], 500);
+        }
+        
+        $data = $response->json();
+        $key = "ISBN:{$isbn}";
+        
+        if (!isset($data[$key])) {
+            return response()->json(['message' => 'Buku tidak ditemukan'], 404);
+        }
+        
+        $bookData = $data[$key];
+        $judul = $bookData['title'] ?? '';
+        
+        $penulisArray = [];
+        if (isset($bookData['authors'])) {
+            foreach ($bookData['authors'] as $author) {
+                $penulisArray[] = $author['name'];
+            }
+        }
+        $penulis = implode(', ', $penulisArray);
+        
+        $coverUrl = $bookData['cover']['medium'] ?? ($bookData['cover']['large'] ?? null);
+        
+        return response()->json([
+            'judul' => $judul,
+            'penulis' => $penulis,
+            'cover_url' => $coverUrl
+        ]);
     }
 }

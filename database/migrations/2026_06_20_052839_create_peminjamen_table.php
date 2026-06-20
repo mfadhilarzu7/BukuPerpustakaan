@@ -8,36 +8,28 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('peminjamans', function (Blueprint $table) {
             $table->id();
+            // Membuat kolom foreign key untuk user dan buku
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('buku_id')->constrained()->onDelete('cascade');
             
-            // Relasi ke tabel bukus dan users
-            $table->foreignId('buku_id')->constrained('bukus');
-            $table->foreignId('user_id')->constrained('users');
-            
-            // Tanggal peminjaman dan pengembalian
+            // Kolom pelengkap sesuai logika seeder Anda
+            $table->string('status'); // dipinjam, dikembalikan, terlambat
             $table->date('tanggal_pinjam');
             $table->date('tanggal_kembali_rencana');
-            $table->date('tanggal_kembali_aktual')->nullable();
-            
-            // Status peminjaman dengan nilai default 'dipinjam'
-            $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
-            
+            $table->date('tanggal_kembali_aktual')->nullable(); // boleh null jika belum dikembalikan
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('peminjamans');
     }

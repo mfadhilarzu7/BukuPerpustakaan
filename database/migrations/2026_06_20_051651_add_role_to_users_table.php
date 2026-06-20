@@ -8,13 +8,10 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Menambahkan kolom role dan nim sesuai gambar
             $table->enum('role', ['petugas', 'mahasiswa'])->default('mahasiswa');
             $table->string('nim')->nullable(); // untuk mahasiswa
         });
@@ -22,14 +19,11 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Menghapus kolom jika migration di-rollback
-            $table->dropColumn(['role', 'nim']);
+            //
         });
     }
 };

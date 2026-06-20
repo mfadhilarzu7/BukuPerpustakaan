@@ -438,6 +438,14 @@
             <li class="menu-item">
                 <a href="#">Pengaturan</a>
             </li>
+            <li class="menu-item">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" style="color: #ef4444; font-weight: bold;">
+                    Keluar / Logout
+                </a>
+            </li>
         </ul>
     </div>
 

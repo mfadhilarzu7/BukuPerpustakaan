@@ -44,15 +44,19 @@ class BukuController extends Controller
             'isbn'    => 'required|unique:bukus,isbn',
             'judul'   => 'required|string|max:255',
             'penulis' => 'required|string|max:255',
+            'stok'    => 'required|integer|min:0',
         ]);
 
         // 2. Simpan data ke dalam tabel 'bukus' menggunakan Model Buku
         Buku::create([
-            'isbn'    => $request->isbn,
-            'judul'   => $request->judul,
-            'penulis' => $request->penulis,
-            // Jika Anda menambahkan input stok di form, sesuaikan di bawah ini:
-            'stok'    => $request->stok ?? 1, 
+            'isbn'         => $request->isbn,
+            'judul'        => $request->judul,
+            'penulis'      => $request->penulis,
+            'penerbit'     => $request->penerbit,
+            'tahun_terbit' => $request->tahun_terbit ?: null,
+            'deskripsi'    => $request->deskripsi,
+            'cover_url'    => $request->cover_url,
+            'stok'         => $request->stok ?? 1,
         ]);
 
         // 3. Alihkan halaman kembali dengan pesan sukses
@@ -117,40 +121,56 @@ class BukuController extends Controller
     }
 
     /**
-     * Fetch metadata of a book using its ISBN.
+     * Fetch metadata buku via ISBN menggunakan Google Books API.
      */
     public function fetchISBN($isbn)
     {
-        $response = \Illuminate\Support\Facades\Http::get("https://openlibrary.org/api/books?bibkeys=ISBN:{$isbn}&jscmd=data&format=json");
-        
+        $apiKey = config('services.google_books.key');
+
+        $response = \Illuminate\Support\Facades\Http::get('https://www.googleapis.com/books/v1/volumes', [
+            'q'   => "isbn:{$isbn}",
+            'key' => $apiKey,
+        ]);
+
         if ($response->failed()) {
-            return response()->json(['message' => 'Failed to fetch data from Open Library'], 500);
+            return response()->json(['message' => 'Gagal menghubungi Google Books API'], 500);
         }
-        
+
         $data = $response->json();
-        $key = "ISBN:{$isbn}";
-        
-        if (!isset($data[$key])) {
+
+        if (empty($data['items'])) {
             return response()->json(['message' => 'Buku tidak ditemukan'], 404);
         }
-        
-        $bookData = $data[$key];
-        $judul = $bookData['title'] ?? '';
-        
-        $penulisArray = [];
-        if (isset($bookData['authors'])) {
-            foreach ($bookData['authors'] as $author) {
-                $penulisArray[] = $author['name'];
-            }
+
+        $info = $data['items'][0]['volumeInfo'];
+
+        $judul    = $info['title'] ?? '';
+        $penulis  = isset($info['authors']) ? implode(', ', $info['authors']) : '';
+        $penerbit = $info['publisher'] ?? '';
+
+        // Ambil tahun dari publishedDate (format: YYYY atau YYYY-MM-DD)
+        $tahunTerbit = null;
+        if (!empty($info['publishedDate'])) {
+            $tahunTerbit = substr($info['publishedDate'], 0, 4);
         }
-        $penulis = implode(', ', $penulisArray);
-        
-        $coverUrl = $bookData['cover']['medium'] ?? ($bookData['cover']['large'] ?? null);
-        
+
+        // Cover: pakai thumbnail, ganti http→https agar tidak diblokir browser
+        $coverUrl = null;
+        if (!empty($info['imageLinks']['thumbnail'])) {
+            $coverUrl = str_replace('http://', 'https://', $info['imageLinks']['thumbnail']);
+        } elseif (!empty($info['imageLinks']['smallThumbnail'])) {
+            $coverUrl = str_replace('http://', 'https://', $info['imageLinks']['smallThumbnail']);
+        }
+
+        $deskripsi = $info['description'] ?? '';
+
         return response()->json([
-            'judul' => $judul,
-            'penulis' => $penulis,
-            'cover_url' => $coverUrl
+            'judul'        => $judul,
+            'penulis'      => $penulis,
+            'penerbit'     => $penerbit,
+            'tahun_terbit' => $tahunTerbit,
+            'cover_url'    => $coverUrl,
+            'deskripsi'    => $deskripsi,
         ]);
     }
 }

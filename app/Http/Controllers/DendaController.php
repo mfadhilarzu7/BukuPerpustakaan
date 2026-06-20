@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Denda;
+use App\Services\DendaService;
 
 class DendaController extends Controller
 {
@@ -12,6 +13,8 @@ class DendaController extends Controller
      */
     public function index()
     {
+        (new DendaService())->updateOverdueFines();
+
         $dendas = Denda::with(['peminjaman.user', 'peminjaman.buku'])
             ->latest()
             ->paginate(15);

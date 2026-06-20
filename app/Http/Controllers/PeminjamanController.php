@@ -8,6 +8,7 @@ use App\Models\Buku;
 use App\Models\User;
 use App\Models\Denda;
 use Carbon\Carbon;
+use App\Services\DendaService;
 
 class PeminjamanController extends Controller
 {
@@ -16,6 +17,8 @@ class PeminjamanController extends Controller
      */
     public function index()
     {
+        (new DendaService())->updateOverdueFines();
+
         $peminjamans = Peminjaman::with(['user', 'buku'])
             ->latest()
             ->paginate(15);
@@ -29,9 +32,7 @@ class PeminjamanController extends Controller
     public function create()
     {
         $mahasiswas = User::where('role', 'mahasiswa')->get();
-        $bukus = Buku::where('stok', '>', 0)->get();
-
-        return view('peminjaman.create', compact('mahasiswas', 'bukus'));
+        return view('peminjaman.create', compact('mahasiswas'));
     }
 
     /**
@@ -40,39 +41,61 @@ class PeminjamanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'buku_id' => 'required|exists:bukus,id',
-            'tanggal_pinjam' => 'required|date',
-            'tanggal_kembali_rencana' => 'required|date|after_or_equal:tanggal_pinjam',
+            'user_id'                => 'required|exists:users,id',
+            'isbn'                   => 'required|exists:bukus,isbn',
+            'tanggal_pinjam'         => 'required|date',
+            'tanggal_kembali_rencana'=> 'required|date|after_or_equal:tanggal_pinjam',
+        ], [
+            'isbn.required' => 'ISBN buku wajib diisi.',
+            'isbn.exists'   => 'Buku dengan ISBN tersebut tidak ditemukan di database.',
         ]);
 
-        $buku = Buku::findOrFail($request->buku_id);
+        $buku = Buku::where('isbn', $request->isbn)->firstOrFail();
 
         if ($buku->stok <= 0) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['buku_id' => 'Stok buku ini sedang habis.']);
+                ->withErrors(['isbn' => 'Stok buku ini sedang habis, tidak bisa dipinjam.']);
         }
 
         // Simpan transaksi peminjaman
         Peminjaman::create([
-            'user_id' => $request->user_id,
-            'buku_id' => $request->buku_id,
-            'status' => 'dipinjam',
-            'tanggal_pinjam' => $request->tanggal_pinjam,
-            'tanggal_kembali_rencana' => $request->tanggal_kembali_rencana,
+            'user_id'                => $request->user_id,
+            'buku_id'                => $buku->id,
+            'status'                 => 'dipinjam',
+            'tanggal_pinjam'         => $request->tanggal_pinjam,
+            'tanggal_kembali_rencana'=> $request->tanggal_kembali_rencana,
         ]);
 
         // Kurangi stok buku
         $buku->decrement('stok');
 
         return redirect()->route('peminjaman.index')
-            ->with('success', 'Transaksi peminjaman berhasil dicatat!');
+            ->with('success', 'Transaksi peminjaman berhasil dicatat! Buku: ' . $buku->judul);
     }
 
     /**
-     * Process returning a borrowed book.
+     * Lookup buku berdasarkan ISBN dari database lokal (digunakan AJAX pada form peminjaman).
      */
+    public function lookupByIsbn(string $isbn)
+    {
+        $buku = Buku::where('isbn', $isbn)->first();
+
+        if (!$buku) {
+            return response()->json(['message' => 'Buku dengan ISBN ini tidak ditemukan di database.'], 404);
+        }
+
+        return response()->json([
+            'id'          => $buku->id,
+            'isbn'        => $buku->isbn,
+            'judul'       => $buku->judul,
+            'penulis'     => $buku->penulis,
+            'penerbit'    => $buku->penerbit ?? '-',
+            'stok'        => $buku->stok,
+            'cover_url'   => $buku->cover_url,
+        ]);
+    }
+
     public function kembalikan(Peminjaman $peminjaman)
     {
         if ($peminjaman->status === 'dikembalikan') {
@@ -91,25 +114,14 @@ class PeminjamanController extends Controller
         // Kembalikan stok buku
         $buku->increment('stok');
 
-        // Hitung keterlambatan dan denda
-        $rencanaKembali = Carbon::parse($peminjaman->tanggal_kembali_rencana);
-        $aktualKembali = Carbon::parse($hariIni);
-        $selisihHari = $rencanaKembali->diffInDays($aktualKembali, false);
+        // Hitung denda menggunakan DendaService
+        $dendaService = new DendaService();
+        $denda = $dendaService->hitung($peminjaman);
 
         $pesanSukses = 'Buku berhasil dikembalikan!';
 
-        if ($selisihHari > 0) {
-            $tarifDendaPerHari = 5000;
-            $totalDenda = $selisihHari * $tarifDendaPerHari;
-
-            Denda::create([
-                'peminjaman_id' => $peminjaman->id,
-                'hari_terlambat' => $selisihHari,
-                'total_denda' => $totalDenda,
-                'status_bayar' => 'belum',
-            ]);
-
-            $pesanSukses .= " Terlambat {$selisihHari} hari. Denda yang dikenakan: Rp " . number_format($totalDenda, 0, ',', '.') . ".";
+        if ($denda) {
+            $pesanSukses .= " Terlambat {$denda->hari_terlambat} hari. Denda yang dikenakan: Rp " . number_format($denda->total_denda, 0, ',', '.') . ".";
         }
 
         return redirect()->route('peminjaman.index')->with('success', $pesanSukses);

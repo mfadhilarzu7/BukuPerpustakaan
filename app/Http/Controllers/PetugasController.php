@@ -7,11 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\Buku;
 use App\Models\Peminjaman;
 use App\Models\Denda;
+use App\Services\DendaService;
 
 class PetugasController extends Controller
 {
     public function index()
     {
+        (new DendaService())->updateOverdueFines();
+
         $totalBuku = Buku::sum('stok');
         $uniqueBukuCount = Buku::count();
         $dipinjamCount = Peminjaman::where('status', 'dipinjam')->count();

@@ -13,7 +13,7 @@ class KatalogController extends Controller
             $q->where('judul', 'like', "%{$s}%")
               ->orWhere('penulis', 'like', "%{$s}%")
               ->orWhere('isbn', 'like', "%{$s}%");
-        })->paginate(12);
+        })->latest()->paginate(12);
 
         return view('katalog.index', compact('bukus'));
     }

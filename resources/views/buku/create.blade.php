@@ -800,7 +800,7 @@
             zxingReader = new ZXing.BrowserMultiFormatReader();
 
             // Cari kamera — preferensi kamera belakang
-            const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+            const devices = await zxingReader.listVideoInputDevices();
             setScannerStatus(`Kamera ditemukan: ${devices.length}. Memulai scan...`);
 
             let deviceId = null;

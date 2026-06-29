@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:petugas'])->group(function () {
     
     // Halaman Utama/Dashboard Petugas
     Route::get('/dashboard-petugas', [PetugasController::class, 'index']);
+    Route::get('/dashboard-petugas/export', [PetugasController::class, 'exportLaporan'])->name('petugas.export-laporan');
     
     // Route API untuk AJAX Auto-fill ISBN (Google Books)
     Route::get('/api/isbn/{isbn}', [BukuController::class, 'fetchISBN']);

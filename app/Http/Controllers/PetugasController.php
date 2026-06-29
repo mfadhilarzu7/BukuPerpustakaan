@@ -47,4 +47,43 @@ class PetugasController extends Controller
             'bukuPopuler'
         ));
     }
+
+    public function exportLaporan()
+    {
+        $fileName = 'laporan_peminjaman_' . date('Y-m-d') . '.csv';
+        $peminjamans = Peminjaman::with(['user', 'buku', 'denda'])->orderBy('created_at', 'desc')->get();
+
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        $columns = ['ID', 'Peminjam', 'Buku', 'Tanggal Pinjam', 'Tenggat', 'Tanggal Kembali', 'Status', 'Denda (Rp)'];
+
+        $callback = function() use($peminjamans, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($peminjamans as $p) {
+                $denda = $p->denda ? $p->denda->total_denda : 0;
+                $row = [
+                    $p->id,
+                    $p->user ? $p->user->name : '-',
+                    $p->buku ? $p->buku->judul : '-',
+                    $p->tanggal_pinjam,
+                    $p->tanggal_kembali_rencana,
+                    $p->tanggal_kembali_aktual ?? '-',
+                    $p->status,
+                    $denda
+                ];
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

@@ -554,7 +554,7 @@
 
                 <div class="action-row">
                     <a href="{{ route('buku.create') }}" class="btn-secondary">Scan ISBN Baru</a>
-                    <button class="btn-secondary">Ekspor Laporan</button>
+                    <a href="{{ route('petugas.export-laporan') }}" class="btn-secondary" style="text-align: center;">Ekspor Laporan</a>
                 </div>
             </div>
 

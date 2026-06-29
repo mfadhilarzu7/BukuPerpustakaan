@@ -803,13 +803,13 @@
             const devices = await zxingReader.listVideoInputDevices();
             setScannerStatus(`Kamera ditemukan: ${devices.length}. Memulai scan...`);
 
-            let deviceId = null;
+            let deviceId = undefined;
             if (devices.length > 0) {
                 // Cari kamera belakang
                 const back = devices.find(d =>
                     /back|rear|environment/i.test(d.label)
                 );
-                deviceId = back ? back.deviceId : devices[devices.length - 1].deviceId;
+                deviceId = back ? back.deviceId : devices[0].deviceId;
             }
 
             const video = document.getElementById('scanner-video');

@@ -1,1 +1,2 @@
-*.sqlite*
+# *.sqlite*
+# File sqlite di-comment agar bisa di-push ke github

@@ -309,17 +309,17 @@
             <li class="menu-item">
                 <a href="/katalog">Katalog Buku</a>
             </li>
-            <li class="menu-item active">
+            <li class="menu-item {{ request('filter') !== 'dikembalikan' ? 'active' : '' }}">
                 <a href="{{ route('peminjaman.index') }}">Peminjaman</a>
             </li>
-            <li class="menu-item">
-                <a href="#">Pengembalian</a>
+            <li class="menu-item {{ request('filter') === 'dikembalikan' ? 'active' : '' }}">
+                <a href="{{ route('peminjaman.index', ['filter' => 'dikembalikan']) }}">Pengembalian</a>
             </li>
             <li class="menu-item">
                 <a href="/buku/create">Scan ISBN</a>
             </li>
             <li class="menu-item">
-                <a href="#">Denda</a>
+                <a href="{{ route('denda.index') }}">Denda</a>
             </li>
         </ul>
 
@@ -347,9 +347,11 @@
         <!-- Header Bar -->
         <div class="header-bar">
             <div class="header-title">
-                <h2>Transaksi Peminjaman</h2>
+                <h2>{{ request('filter') === 'dikembalikan' ? 'Data Pengembalian' : 'Transaksi Peminjaman' }}</h2>
             </div>
-            <a href="{{ route('peminjaman.create') }}" class="btn-add">+ Catat Peminjaman</a>
+            @if(request('filter') !== 'dikembalikan')
+                <a href="{{ route('peminjaman.create') }}" class="btn-add">+ Catat Peminjaman</a>
+            @endif
         </div>
 
         <!-- Alert Notification -->

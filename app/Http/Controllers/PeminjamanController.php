@@ -15,13 +15,19 @@ class PeminjamanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         (new DendaService())->updateOverdueFines();
 
-        $peminjamans = Peminjaman::with(['user', 'buku'])
-            ->latest()
-            ->paginate(15);
+        $query = Peminjaman::with(['user', 'buku'])->latest();
+
+        if ($request->filter === 'dikembalikan') {
+            $query->where('status', 'dikembalikan');
+        } elseif ($request->filter === 'dipinjam') {
+            $query->where('status', 'dipinjam');
+        }
+
+        $peminjamans = $query->paginate(15)->appends($request->query());
 
         return view('peminjaman.index', compact('peminjamans'));
     }

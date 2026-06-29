@@ -280,7 +280,7 @@
                 <a href="{{ route('peminjaman.index') }}">Peminjaman</a>
             </li>
             <li class="menu-item">
-                <a href="{{ route('peminjaman.index') }}">Pengembalian</a>
+                <a href="{{ route('peminjaman.index', ['filter' => 'dikembalikan']) }}">Pengembalian</a>
             </li>
             <li class="menu-item">
                 <a href="{{ route('buku.create') }}">Scan ISBN</a>

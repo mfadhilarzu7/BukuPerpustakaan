@@ -809,7 +809,7 @@
                 const back = devices.find(d =>
                     /back|rear|environment/i.test(d.label)
                 );
-                deviceId = back ? back.deviceId : devices[devices.length - 1].deviceId;
+                deviceId = back ? back.deviceId : devices[0].deviceId;
             }
 
             const video = document.getElementById('scanner-video');

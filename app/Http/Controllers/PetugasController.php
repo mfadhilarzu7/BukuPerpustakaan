@@ -65,7 +65,7 @@ class PetugasController extends Controller
 
         $callback = function() use($peminjamans, $columns) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
+            fputcsv($file, $columns, ';');
 
             foreach ($peminjamans as $p) {
                 $denda = $p->denda ? $p->denda->total_denda : 0;
@@ -79,7 +79,7 @@ class PetugasController extends Controller
                     $p->status,
                     $denda
                 ];
-                fputcsv($file, $row);
+                fputcsv($file, $row, ';');
             }
             fclose($file);
         };

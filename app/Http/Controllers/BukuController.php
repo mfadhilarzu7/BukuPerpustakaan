@@ -132,7 +132,7 @@ class BukuController extends Controller
             $params['key'] = $apiKey;
         }
 
-        $response = \Illuminate\Support\Facades\Http::get('https://www.googleapis.com/books/v1/volumes', $params);
+        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get('https://www.googleapis.com/books/v1/volumes', $params);
 
         if ($response->failed()) {
             return response()->json(['message' => 'Gagal menghubungi Google Books API'], 500);

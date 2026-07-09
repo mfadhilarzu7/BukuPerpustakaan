@@ -12,7 +12,7 @@ class GoogleBooksService
     public function fetchByISBN(string $isbn)
     {
         // Menembak URL API Google Books publik
-        $response = Http::get("https://www.googleapis.com/books/v1/volumes?q=isbn:{$isbn}");
+        $response = Http::withoutVerifying()->get("https://www.googleapis.com/books/v1/volumes?q=isbn:{$isbn}");
 
         if ($response->failed() || !isset($response->json()['items'])) {
             return null;

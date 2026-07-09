@@ -66,7 +66,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            flex-grow: 1;
         }
 
         .sidebar-menu-bottom {
@@ -74,7 +73,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-top: auto;
         }
 
         .menu-item a {
@@ -454,7 +452,7 @@
         
         <!-- Judul Banner Tambahan -->
         <div class="top-description">
-            BukuKita — dashboard admin perpustakaan kampus dengan tema hitam silver
+            BukuKita — dashboard admin perpustakaan 
         </div>
 
         <!-- Header Bar -->
